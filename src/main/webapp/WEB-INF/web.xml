@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+         https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+    <display-name>InsuranceApp</display-name>
+
+    <!-- ========================================================= -->
+    <!-- 文字コード（リクエスト/レスポンス）UTF-8 固定（POST対策） -->
+    <!-- Tomcat 付属フィルタ（追加のJavaファイル不要） -->
+    <!-- ========================================================= -->
+    <filter>
+        <filter-name>SetCharacterEncodingFilter</filter-name>
+        <filter-class>org.apache.catalina.filters.SetCharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <!-- true: リクエストに既に encoding 指定があっても UTF-8 を強制 -->
+        <init-param>
+            <param-name>ignore</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>SetCharacterEncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <!-- Policy Servlets -->
+    <servlet>
+        <servlet-name>PolicyListServlet</servlet-name>
+        <servlet-class>jp.insurance.system.controller.PolicyListServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PolicyListServlet</servlet-name>
+        <url-pattern>/policies</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>PolicyDetailServlet</servlet-name>
+        <servlet-class>jp.insurance.system.controller.PolicyDetailServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PolicyDetailServlet</servlet-name>
+        <url-pattern>/policies/detail</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>PolicyNewServlet</servlet-name>
+        <servlet-class>jp.insurance.system.controller.PolicyNewServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PolicyNewServlet</servlet-name>
+        <url-pattern>/policies/new</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>PolicyActionServlet</servlet-name>
+        <servlet-class>jp.insurance.system.controller.PolicyActionServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PolicyActionServlet</servlet-name>
+        <url-pattern>/policies/renew</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PolicyActionServlet</servlet-name>
+        <url-pattern>/policies/unrenew</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PolicyActionServlet</servlet-name>
+        <url-pattern>/policies/cancel</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PolicyActionServlet</servlet-name>
+        <url-pattern>/policies/uncancel</url-pattern>
+    </servlet-mapping>
+
+    <!-- Accident Servlets -->
+    <servlet>
+        <servlet-name>AccidentListServlet</servlet-name>
+        <servlet-class>jp.insurance.system.controller.AccidentListServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AccidentListServlet</servlet-name>
+        <url-pattern>/accidents</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AccidentDetailServlet</servlet-name>
+        <servlet-class>jp.insurance.system.controller.AccidentDetailServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AccidentDetailServlet</servlet-name>
+        <url-pattern>/accidents/detail</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AccidentNewServlet</servlet-name>
+        <servlet-class>jp.insurance.system.controller.AccidentNewServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AccidentNewServlet</servlet-name>
+        <url-pattern>/accidents/new</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AccidentActionServlet</servlet-name>
+        <servlet-class>jp.insurance.system.controller.AccidentActionServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AccidentActionServlet</servlet-name>
+        <url-pattern>/accidents/status</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AccidentActionServlet</servlet-name>
+        <url-pattern>/accidents/contacted</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AccidentActionServlet</servlet-name>
+        <url-pattern>/accidents/memo</url-pattern>
+    </servlet-mapping>
+
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
+</web-app>
