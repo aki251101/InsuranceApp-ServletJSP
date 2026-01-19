@@ -1,0 +1,120 @@
+# ========================================
+# Common
+# ========================================
+*.class
+*.log
+*.tmp
+
+# ========================================
+# Maven / Gradle build
+# ========================================
+target/
+out/
+bin/
+build/
+
+# ========================================
+# Eclipse
+# ========================================
+.project
+.classpath
+.settings/
+.metadata/
+rebel.xml
+
+# Eclipse / STS extra
+.factorypath
+.apt_generated/
+.springBeans
+.sts4-cache/
+Servers/
+
+# ========================================
+# IntelliJ IDEA
+# ========================================
+.idea/
+*.iml
+
+# IntelliJ / JetBrains (more)
+*.ipr
+*.iws
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/shelf/
+.idea/**/dictionaries/
+.idea/**/aws.xml
+
+# ========================================
+# VS Code
+# ========================================
+.vscode/
+*.code-workspace
+
+# ========================================
+# Gradle
+# ========================================
+.gradle/
+
+# ========================================
+# Python
+# ========================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ========================================
+# Logs / temp
+# ========================================
+logs/
+*.bak
+*.swp
+*.swo
+
+# ========================================
+# OS junk files
+# ========================================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ========================================
+# Environment / secrets (keep templates in repo)
+# ========================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# ========================================
+# Node (if you add frontend later)
+# ========================================
+node_modules/
+.next/
+
+# ========================================
+# (Optional) Spring Boot local config (uncomment if you create them)
+# ========================================
+# src/main/resources/application-local.yml
+# src/main/resources/application-local.properties
+# src/main/resources/application-dev.yml
+# src/main/resources/application-dev.properties
