@@ -1,0 +1,62 @@
+/* 損保管理システム カスタムスタイル */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1;
+}
+
+footer {
+    margin-top: auto;
+}
+
+/* カードのスタイル調整 */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header h5 {
+    margin-bottom: 0;
+}
+
+/* テーブルのスタイル調整 */
+.table-borderless th {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* バッジのスタイル */
+.badge {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* ボタンの間隔調整 */
+form[style*="display:inline"] {
+    margin-right: 0.5rem;
+}
+
+/* ナビゲーションバーのアクティブリンク */
+.navbar-dark .navbar-nav .nav-link.active {
+    font-weight: bold;
+}
+
+/* タブのスタイル */
+.nav-tabs .nav-link.active {
+    font-weight: 600;
+}
+
+/* アラートのスタイル */
+.alert {
+    border-radius: 0.25rem;
+}
+
+/* カードのホバー効果 */
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.3s ease-in-out;
+}
