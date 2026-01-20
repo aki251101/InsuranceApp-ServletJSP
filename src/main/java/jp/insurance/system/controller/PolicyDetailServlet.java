@@ -17,7 +17,7 @@ public class PolicyDetailServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/policies");
@@ -40,14 +40,27 @@ public class PolicyDetailServlet extends HttpServlet {
             request.setAttribute("policyService", policyService);
 
             request.getRequestDispatcher("/WEB-INF/views/policy/detail.jsp")
-                   .forward(request, response);
+                    .forward(request, response);
 
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/policies");
         } catch (BusinessException e) {
+            // 存在しないIDは 404 相当にする
+            if ("契約が見つかりません".equals(e.getMessage())) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                request.setAttribute("title", "契約が見つかりません");
+                request.setAttribute("active", "policies");
+                request.setAttribute("message", "契約が見つかりません（ID: " + idParam + "）");
+                request.setAttribute("backUrl", request.getContextPath() + "/policies");
+                request.getRequestDispatcher("/WEB-INF/views/common/notFound.jsp")
+                        .forward(request, response);
+                return;
+            }
+
+            // その他の業務エラーは従来通り
             request.setAttribute("errorMessage", e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/policy/list.jsp")
-                   .forward(request, response);
+                    .forward(request, response);
         }
     }
 }

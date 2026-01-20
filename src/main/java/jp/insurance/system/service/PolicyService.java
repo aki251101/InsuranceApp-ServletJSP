@@ -230,6 +230,13 @@ public class PolicyService {
                 throw new BusinessException("契約中の契約のみ解約できます");
             }
 
+            // 失効（満期日を過ぎた契約）は「解約」に変更できない。
+            // 失効は「契約期間が終了した状態」であり、後から任意解約する業務ではないため。
+            LocalDate today = DateUtil.today();
+            if (isLapsed(policy, today)) {
+                throw new BusinessException("失効した契約は解約できません");
+            }
+
             policy.setStatus(PolicyStatus.CANCELLED);
             policy.setCancelledAt(LocalDateTime.now());
 
@@ -309,6 +316,14 @@ public class PolicyService {
 
     public boolean isLapsed(Policy policy, LocalDate today) {
         return policy.getStatus() != PolicyStatus.CANCELLED && today.isAfter(policy.getEndDate());
+    }
+
+    /**
+     * 解約ボタンを表示・実行できるか（英語: cancellable / 和訳: 解約可能か）
+     * 役割: 「契約中」かつ「失効していない」場合のみ true を返す。
+     */
+    public boolean isCancellable(Policy policy, LocalDate today) {
+        return policy.getStatus() == PolicyStatus.ACTIVE && !isLapsed(policy, today);
     }
 
     public String getDisplayStatus(Policy policy) {

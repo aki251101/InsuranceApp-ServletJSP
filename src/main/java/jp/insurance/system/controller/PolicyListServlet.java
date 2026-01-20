@@ -25,15 +25,25 @@ public class PolicyListServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String query = request.getParameter("q");
         String tab = request.getParameter("tab");
-        if (tab == null || tab.isEmpty()) {
-            tab = "renewable";
+
+        // Day50（合意した仕様：検索＝全件検索モード）
+        // 1) q がある（検索した）場合は、タブは必ず all として扱う。
+        //    →「検索したら勝手に更新可能契約になる」問題を根本から消す。
+        // 2) q がない通常表示の場合は、tab 未指定なら renewable（更新可能契約）をデフォルトにする。
+        boolean hasQuery = (query != null && !query.trim().isEmpty());
+        if (hasQuery) {
+            tab = "all";
+        } else {
+            if (tab == null || tab.isEmpty()) {
+                tab = "renewable";
+            }
         }
 
         List<Policy> policies;
-        if (query != null && !query.trim().isEmpty()) {
+        if (hasQuery) {
             policies = policyService.searchPolicies(query);
         } else {
             policies = policyService.getAllPolicies();
