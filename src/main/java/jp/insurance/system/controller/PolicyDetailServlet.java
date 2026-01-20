@@ -30,14 +30,6 @@ public class PolicyDetailServlet extends HttpServlet {
                 forwardBadRequest(request, response, "契約IDが不正です", idParam);
                 return;
             }
-            if (policyId <= 0) {
-                forwardBadRequest(request, response, "契約IDが不正です", idParam);
-                return;
-            }
-            if (policyId <= 0) {
-                forwardBadRequest(request, response, "契約IDが不正です", idParam);
-                return;
-            }
 
             Policy policy = policyService.getPolicyById(policyId);
 
