@@ -19,13 +19,26 @@ public class PolicyDetailServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String idParam = request.getParameter("id");
-        if (idParam == null || idParam.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/policies");
+        if (idParam == null || idParam.isBlank()) {
+            forwardBadRequest(request, response, "契約IDが指定されていません", null);
             return;
         }
 
         try {
             Long policyId = Long.parseLong(idParam);
+            if (policyId <= 0) {
+                forwardBadRequest(request, response, "契約IDが不正です", idParam);
+                return;
+            }
+            if (policyId <= 0) {
+                forwardBadRequest(request, response, "契約IDが不正です", idParam);
+                return;
+            }
+            if (policyId <= 0) {
+                forwardBadRequest(request, response, "契約IDが不正です", idParam);
+                return;
+            }
+
             Policy policy = policyService.getPolicyById(policyId);
 
             HttpSession session = request.getSession();
@@ -43,9 +56,11 @@ public class PolicyDetailServlet extends HttpServlet {
                     .forward(request, response);
 
         } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/policies");
+            // id=abc のように数値へ変換できない場合は 400 Bad Request
+            forwardBadRequest(request, response, "契約IDが数値ではありません", idParam);
+
         } catch (BusinessException e) {
-            // 存在しないIDは 404 相当にする
+            // 存在しないIDは 404 Not Found
             if ("契約が見つかりません".equals(e.getMessage())) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 request.setAttribute("title", "契約が見つかりません");
@@ -62,5 +77,25 @@ public class PolicyDetailServlet extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/views/policy/list.jsp")
                     .forward(request, response);
         }
+    }
+
+    /**
+     * 400 Bad Request を返し、共通の notFound.jsp を使ってユーザーにも分かる形で表示する。
+     */
+    private void forwardBadRequest(HttpServletRequest request, HttpServletResponse response,
+                                   String reason, String rawId)
+            throws ServletException, IOException {
+
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+        String idLabel = (rawId == null || rawId.isBlank()) ? "未指定" : rawId;
+
+        request.setAttribute("title", "不正なリクエスト");
+        request.setAttribute("active", "policies");
+        request.setAttribute("message", reason + "（id: " + idLabel + "）");
+        request.setAttribute("backUrl", request.getContextPath() + "/policies");
+
+        request.getRequestDispatcher("/WEB-INF/views/common/notFound.jsp")
+                .forward(request, response);
     }
 }

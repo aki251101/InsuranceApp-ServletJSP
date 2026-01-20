@@ -19,13 +19,17 @@ public class AccidentDetailServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String idParam = request.getParameter("id");
-        if (idParam == null || idParam.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/accidents");
+        if (idParam == null || idParam.isBlank()) {
+            forwardBadRequest(request, response, "事故IDが指定されていません", null);
             return;
         }
 
         try {
             Long accidentId = Long.parseLong(idParam);
+            if (accidentId <= 0) {
+                forwardBadRequest(request, response, "事故IDが不正です", idParam);
+                return;
+            }
             Accident accident = accidentService.getAccidentById(accidentId);
 
             HttpSession session = request.getSession();
@@ -43,7 +47,9 @@ public class AccidentDetailServlet extends HttpServlet {
                     .forward(request, response);
 
         } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/accidents");
+            // id=abc のように数値へ変換できない場合は 400 Bad Request
+            forwardBadRequest(request, response, "事故IDが数値ではありません", idParam);
+            return;
         } catch (BusinessException e) {
             // 存在しないIDは 404 相当にする
             if ("事故が見つかりません".equals(e.getMessage())) {
@@ -63,4 +69,27 @@ public class AccidentDetailServlet extends HttpServlet {
                     .forward(request, response);
         }
     }
+
+    /**
+     * 400 Bad Request を返し、ユーザーにも「何が不正か」を画面で示す。
+     *
+     * 既存の notFound.jsp を再利用しているが、HTTPステータスは 404 ではなく 400 を返す。
+     */
+    private void forwardBadRequest(HttpServletRequest request, HttpServletResponse response,
+                                   String reason, String rawId)
+            throws ServletException, IOException {
+
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+        String idLabel = (rawId == null || rawId.isBlank()) ? "未指定" : rawId;
+
+        request.setAttribute("title", "不正なリクエスト");
+        request.setAttribute("active", "accidents");
+        request.setAttribute("message", reason + "（ID: " + idLabel + "）");
+        request.setAttribute("backUrl", request.getContextPath() + "/accidents");
+
+        request.getRequestDispatcher("/WEB-INF/views/common/notFound.jsp")
+                .forward(request, response);
+    }
+
 }
