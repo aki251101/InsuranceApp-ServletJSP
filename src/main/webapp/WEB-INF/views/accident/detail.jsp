@@ -12,7 +12,7 @@
 <!-- メッセージ表示 -->
 <c:if test="${not empty message}">
     <div class="alert alert-${messageType} alert-dismissible fade show" role="alert">
-        ${message}
+            ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 </c:if>
@@ -24,48 +24,48 @@
     <div class="card-body">
         <table class="table table-borderless">
             <tbody>
-                <tr>
-                    <th width="150">事故受付日</th>
-                    <td>${DateUtil.formatDate(accident.occurredAt)}</td>
-                </tr>
-                <tr>
-                    <th>場所</th>
-                    <td>${accident.place}</td>
-                </tr>
-                <tr>
-                    <th>概要</th>
-                    <td>${accident.description}</td>
-                </tr>
-                <tr>
-                    <th>ステータス</th>
-                    <td>
-                        ${accident.status.displayName}
-                        <c:if test="${accidentService.isStagnant(accident)}">
-                            <span class="badge bg-danger ms-2">滞留</span>
-                        </c:if>
-                    </td>
-                </tr>
-                <tr>
-                    <th>最終対応日時</th>
-                    <td>
-                        <c:choose>
-                            <c:when test="${accident.lastContactedAt != null}">
-                                ${accident.lastContactedAt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"))}
-                            </c:when>
-                            <c:otherwise>
-                                未対応
-                            </c:otherwise>
-                        </c:choose>
-                    </td>
-                </tr>
-                <tr>
-                    <th>関連契約</th>
-                    <td>
-                        <a href="${pageContext.request.contextPath}/policies/detail?id=${accident.policyId}">
-                            ${accident.policyNumber} - ${accident.customerName}
-                        </a>
-                    </td>
-                </tr>
+            <tr>
+                <th width="150">事故受付日</th>
+                <td>${DateUtil.formatDate(accident.occurredAt)}</td>
+            </tr>
+            <tr>
+                <th>場所</th>
+                <td>${accident.place}</td>
+            </tr>
+            <tr>
+                <th>概要</th>
+                <td>${accident.description}</td>
+            </tr>
+            <tr>
+                <th>ステータス</th>
+                <td>
+                    ${accident.status.displayName}
+                    <c:if test="${accidentService.isStagnant(accident)}">
+                        <span class="badge bg-danger ms-2">滞留</span>
+                    </c:if>
+                </td>
+            </tr>
+            <tr>
+                <th>最終対応日時</th>
+                <td>
+                    <c:choose>
+                        <c:when test="${accident.lastContactedAt != null}">
+                            ${accident.lastContactedAt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"))}
+                        </c:when>
+                        <c:otherwise>
+                            未対応
+                        </c:otherwise>
+                    </c:choose>
+                </td>
+            </tr>
+            <tr>
+                <th>関連契約</th>
+                <td>
+                    <a href="${pageContext.request.contextPath}/policies/detail?id=${accident.policyId}">
+                        ${accident.policyNumber} - ${accident.customerName}
+                    </a>
+                </td>
+            </tr>
             </tbody>
         </table>
     </div>
@@ -102,21 +102,21 @@
             </form>
         </c:if>
 
-        <!-- 完了ボタン -->
-        <c:if test="${accident.status.name() == 'IN_PROGRESS'}">
-            <form method="post" action="${pageContext.request.contextPath}/accidents/status" style="display:inline;">
-                <input type="hidden" name="id" value="${accident.id}">
-                <input type="hidden" name="status" value="RESOLVED">
-                <button type="submit" class="btn btn-success" 
-                        onclick="return confirm('完了にしますか？完了後は戻せません。')">完了</button>
-            </form>
-        </c:if>
-
-        <!-- 対応したボタン -->
+        <!-- 対応したボタン（対応履歴の更新） -->
         <c:if test="${accident.status.name() != 'RESOLVED'}">
             <form method="post" action="${pageContext.request.contextPath}/accidents/contacted" style="display:inline;">
                 <input type="hidden" name="id" value="${accident.id}">
                 <button type="submit" class="btn btn-info">対応した</button>
+            </form>
+        </c:if>
+
+        <!-- 解決ボタン（事故対応がすべて終わった状態へ） -->
+        <c:if test="${accident.status.name() == 'IN_PROGRESS'}">
+            <form method="post" action="${pageContext.request.contextPath}/accidents/status" style="display:inline;">
+                <input type="hidden" name="id" value="${accident.id}">
+                <input type="hidden" name="status" value="RESOLVED">
+                <button type="submit" class="btn btn-success"
+                        onclick="return confirm('解決にしますか？解決後は戻せません。')">解決</button>
             </form>
         </c:if>
     </div>

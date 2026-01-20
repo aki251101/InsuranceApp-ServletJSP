@@ -17,7 +17,7 @@ public class AccidentDetailServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/accidents");
@@ -40,14 +40,27 @@ public class AccidentDetailServlet extends HttpServlet {
             request.setAttribute("accidentService", accidentService);
 
             request.getRequestDispatcher("/WEB-INF/views/accident/detail.jsp")
-                   .forward(request, response);
+                    .forward(request, response);
 
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/accidents");
         } catch (BusinessException e) {
+            // 存在しないIDは 404 相当にする
+            if ("事故が見つかりません".equals(e.getMessage())) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                request.setAttribute("title", "事故が見つかりません");
+                request.setAttribute("active", "accidents");
+                request.setAttribute("message", "事故が見つかりません（ID: " + idParam + "）");
+                request.setAttribute("backUrl", request.getContextPath() + "/accidents");
+                request.getRequestDispatcher("/WEB-INF/views/common/notFound.jsp")
+                        .forward(request, response);
+                return;
+            }
+
+            // その他の業務エラーは従来通り
             request.setAttribute("errorMessage", e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/accident/list.jsp")
-                   .forward(request, response);
+                    .forward(request, response);
         }
     }
 }

@@ -80,7 +80,7 @@
         </c:if>
 
         <!-- 解約ボタン -->
-        <c:if test="${policy.status.name() == 'ACTIVE'}">
+        <c:if test="${policyService.isCancellable(policy, today)}">
             <form method="post" action="${pageContext.request.contextPath}/policies/cancel" style="display:inline;">
                 <input type="hidden" name="id" value="${policy.id}">
                 <button type="submit" class="btn btn-danger" 
