@@ -7,10 +7,21 @@
 
 <h2 class="mb-4">事故新規登録</h2>
 
-<!-- エラーメッセージ -->
+<!-- エラーメッセージ（入力不正：errors / システム系：errorMessage） -->
+<c:if test="${not empty errors}">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <ul class="mb-0">
+            <c:forEach var="err" items="${errors}">
+                <li>${err}</li>
+            </c:forEach>
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</c:if>
+
 <c:if test="${not empty errorMessage}">
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        ${errorMessage}
+            ${errorMessage}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 </c:if>
