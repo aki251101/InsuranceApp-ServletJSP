@@ -10,10 +10,23 @@ import java.sql.SQLException;
 
 public class Db {
     private static final Logger logger = LoggerFactory.getLogger(Db.class);
-    
-    private static final String URL = "jdbc:mysql://localhost:3306/insurance_app?useSSL=false&serverTimezone=Asia/Tokyo&allowPublicKeyRetrieval=true";
-    private static final String USER = "root";
-    private static final String PASSWORD = "xV3%jlAkrasV";
+
+    /**
+     * 公開（GitHub）を前提に、接続情報は環境変数から取得する。
+     * IntelliJ実行構成（Tomcat）に環境変数を設定すれば、今まで通り動作する。
+     *
+     * 環境変数：
+     * - INSURANCEAPP_DB_URL
+     * - INSURANCEAPP_DB_USER
+     * - INSURANCEAPP_DB_PASSWORD
+     */
+    private static final String DEFAULT_URL =
+            "jdbc:mysql://localhost:3306/insurance_app?useSSL=false&serverTimezone=Asia/Tokyo&allowPublicKeyRetrieval=true";
+    private static final String DEFAULT_USER = "root";
+
+    private static final String URL = envOrDefault("INSURANCEAPP_DB_URL", DEFAULT_URL);
+    private static final String USER = envOrDefault("INSURANCEAPP_DB_USER", DEFAULT_USER);
+    private static final String PASSWORD = envOrThrow("INSURANCEAPP_DB_PASSWORD");
 
     static {
         try {
@@ -28,7 +41,7 @@ public class Db {
         try {
             return DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (SQLException e) {
-            logger.error("データベース接続に失敗しました", e);
+            logger.error("データベース接続に失敗しました (url={}, user={})", URL, USER, e);
             throw new SystemException("データベース接続に失敗しました", e);
         }
     }
@@ -51,5 +64,22 @@ public class Db {
                 logger.error("ロールバックに失敗しました", e);
             }
         }
+    }
+
+    private static String envOrDefault(String key, String defaultValue) {
+        String v = System.getenv(key);
+        if (v == null || v.isBlank()) {
+            return defaultValue;
+        }
+        return v;
+    }
+
+    private static String envOrThrow(String key) {
+        String v = System.getenv(key);
+        if (v == null || v.isBlank()) {
+            // ここで落とすことで「パスワードをコードに戻す」事故を防ぐ
+            throw new SystemException("環境変数 " + key + " が未設定です。IntelliJの実行構成に設定してください。");
+        }
+        return v;
     }
 }
