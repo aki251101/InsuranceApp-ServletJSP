@@ -1,4 +1,4 @@
-# InsuranceApp（損保アプリ：Servlet/JSP版）
+# InsuranceApp-ServletJSP（損保業務支援アプリ：Servlet/JSP版）
 
 **Java（Servlet/JSP）＋MySQL**で作成した学習用の損保業務題材アプリです。Webアプリの基本（画面遷移、CRUD、HTTP、ステータスコード、入力検証、例外設計、DB永続化）を一通り実装し、ポートフォリオとして提示できる状態に整備しました。
 
