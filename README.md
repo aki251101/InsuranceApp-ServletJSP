@@ -1,437 +1,188 @@
-# InsuranceApp（損保アプリ：Servlet/JSP版）
+# InsuranceApp - 損保業務支援アプリ
 
-**Java（Servlet/JSP）＋MySQL**で作成した学習用の損保業務題材アプリです。Webアプリの基本（画面遷移、CRUD、HTTP、ステータスコード、入力検証、例外設計、DB永続化）を一通り実装し、ポートフォリオとして提示できる状態に整備しました。
+自動車保険の契約管理と事故対応を支援するWebアプリケーションです。  
+保険代理店の日常業務で発生する「契約の更新漏れ」や「事故対応の滞留」を防ぐことを目的としています。
 
----
+## できること
 
-## 背景
+### 契約管理
+- 契約一覧の表示（タブ切り替え：更新可能契約 / 契約中 / 解約 / 失効 / 全件）
+- 契約番号による検索、契約者名による検索
+- 契約の新規登録（契約番号は年度ごとに自動採番、満期日は開始日から1年後を自動計算）
+- 契約の更新（満期2か月前〜満期日の期間に実行可能）
+- 契約の更新取消（当日限定）
+- 契約の解約 / 解約取消（当日限定）
+- 早期更改率の集計表示（当年度 / 当月）
+- 要注意バッジ（満期20日前〜満期日の契約に表示）
 
-損害保険代理店での実務経験を活かし、実際の業務で使用していた契約管理・事故管理システムの機能を参考に作成しました。特に**早期更改率（満期日の3週間前までに更新手続きを完了した契約の割合）**の向上に注力していた経験から、満期日の21日前を過ぎると契約一覧に「要注意」マークが表示される仕組みを実装しています。
-
-また、契約一覧の上部に「早期更改率（当年度）」「早期更改率（当月）」を常時表示することで、更新業務の進捗を可視化し、業務の優先順位付けをサポートする設計としました。
-
----
-
-## デモ
-
-**動画（3分）：** 準備中（Day53で撮影予定）
-
-> 契約・事故の一覧→詳細→登録の流れと、HTTPステータスコード（400/500）を確認できる内容です。
-
----
-
-## 主な機能
-
-### 契約管理（Policies）
-
-* 契約一覧表示
-* 契約詳細表示
-* 契約新規登録
-* 契約のステータス操作（更新/解約/取消）
-
-### 事故管理（Accidents）
-
-* 事故一覧表示
-* 事故詳細表示
-* 事故新規登録
-* ステータス更新（未対応→対応中→完了）
-* 対応日時の記録
-* 対応メモの保存
-
-### エラー設計
-
-* **400 Bad Request**：入力不正・業務エラー（errorsを返して画面再表示）
-* **500 Internal Server Error**：想定外エラー（システムエラー画面へ）
-
----
+### 事故管理
+- 事故一覧の表示（タブ切り替え：対応中 / 完了）
+- 事故の新規登録（契約を選択して登録）
+- ステータス管理（受付 → 対応中 → 完了、完了からは戻せない）
+- 「対応した」ボタンで最終対応日時を記録
+- 対応メモの保存
+- 滞留バッジ（最終対応から7日以上経過、または未対応の事故に表示）
 
 ## 技術スタック
 
-* **言語・フレームワーク**：Java 17 / Servlet / JSP / JSTL / EL
-* **アプリケーションサーバー**：Apache Tomcat 10.1.x
-* **データベース**：MySQL
-* **ビルドツール**：Maven
-* **バージョン管理**：Git / GitHub
+| 項目 | 内容 |
+|------|------|
+| 言語 | Java 17 |
+| サーバー | Apache Tomcat 10.1.x |
+| フレームワーク | Servlet 6.0 / JSP 3.1（フレームワークなし） |
+| データベース | MySQL 8.x |
+| ビルドツール | Maven |
+| CSS | Bootstrap 5 |
+| ログ | SLF4J + Logback |
 
----
+### 主な依存ライブラリ
 
-## 画面イメージ
+| ライブラリ | バージョン | 用途 |
+|-----------|-----------|------|
+| jakarta.servlet-api | 6.0.0 | Servlet API |
+| jakarta.servlet.jsp-api | 3.1.1 | JSP API |
+| jakarta.servlet.jsp.jstl-api | 3.0.0 | JSTL API |
+| mysql-connector-j | 8.2.0 | MySQL接続 |
+| slf4j-api | 2.0.9 | ログAPI |
+| logback-classic | 1.4.14 | ログ実装 |
 
-### 1. 契約一覧
+## プロジェクト構成
 
-契約番号・顧客名・満期日・ステータスを一覧表示し、検索・絞り込み・新規登録が可能です。
-
-![契約一覧画面](doc/images/01_polisies_list.png)
-
-### 2. 事故新規登録
-
-契約ID・発生日・場所・概要を入力して事故を登録します。入力検証により不正なデータを防ぎます。
-
-![事故登録画面](doc/images/02_accident_new.png)
-
-### 3. 事故詳細（ステータス更新）
-
-事故の詳細情報を表示し、ステータス更新（対応中→解決）や対応メモの保存が可能です。
-
-![事故詳細画面](doc/images/03_accident_detail.png)
-
----
-
-## セットアップ（ローカル環境で動作確認）
-
-### 前提
-
-以下がインストール済みであることを確認してください。
-
-* **Java**：JDK 17
-* **Apache Tomcat**：10.1.x（Jakarta Servlet）
-* **MySQL**：Workbench または CLI で操作できること
-* **Maven**：3.6 以上（IntelliJ IDEA の内蔵 Maven でも可）
-* **IntelliJ IDEA**：Community / Ultimate いずれも可（本READMEは Community 想定）
-
----
-
-### 手順1：リポジトリをクローン
-
-```bash
-git clone https://github.com/aki251101/InsuranceApp.git
-cd InsuranceApp
+```
+src/main/
+├── java/jp/insurance/system/
+│   ├── controller/          ← Servlet（画面の入口）
+│   │   ├── PolicyListServlet.java
+│   │   ├── PolicyDetailServlet.java
+│   │   ├── PolicyNewServlet.java
+│   │   ├── PolicyActionServlet.java
+│   │   ├── AccidentListServlet.java
+│   │   ├── AccidentDetailServlet.java
+│   │   ├── AccidentNewServlet.java
+│   │   └── AccidentActionServlet.java
+│   ├── service/             ← 業務ロジック
+│   │   ├── PolicyService.java
+│   │   ├── AccidentService.java
+│   │   └── StatsService.java
+│   ├── dao/                 ← データベースアクセス
+│   │   ├── PolicyDao.java
+│   │   └── AccidentDao.java
+│   ├── model/               ← データの入れ物
+│   │   ├── Policy.java
+│   │   ├── PolicyStatus.java
+│   │   ├── Accident.java
+│   │   ├── AccidentStatus.java
+│   │   └── RenewalStats.java
+│   ├── exception/           ← 例外クラス
+│   │   ├── BusinessException.java
+│   │   └── SystemException.java
+│   └── util/                ← 共通ユーティリティ
+│       ├── Db.java
+│       ├── DateUtil.java
+│       └── DataInitializer.java
+├── resources/
+│   └── init.sql             ← テーブル作成・初期データ投入SQL
+└── webapp/
+    ├── index.jsp
+    ├── css/style.css
+    └── WEB-INF/
+        ├── web.xml
+        └── views/
+            ├── policy/      ← 契約画面
+            │   ├── list.jsp
+            │   ├── detail.jsp
+            │   └── new.jsp
+            ├── accident/    ← 事故画面
+            │   ├── list.jsp
+            │   ├── detail.jsp
+            │   └── new.jsp
+            └── common/      ← 共通部品
+                ├── header.jsp
+                ├── footer.jsp
+                └── notFound.jsp
 ```
 
----
+## セットアップ手順
 
-### 手順2：データベースの準備
+### 前提条件
+- JDK 17 がインストールされていること
+- Apache Tomcat 10.1.x がインストールされていること
+- MySQL 8.x がインストール・起動されていること
+- Maven がインストールされていること
 
-#### 2-1. MySQLにログイン（CLIの場合）
+### 1. データベースの準備
 
-```bash
-mysql -u root -p
-```
-
-#### 2-2. データベース作成とテーブル初期化
-
-本プロジェクトには `src/main/resources/init.sql` が用意されています。このファイルを実行すると、データベース（`insurance_app`）の作成、テーブル作成、初期データ投入が一括で行われます。
-
-**MySQL CLIで実行する場合：**
-
-```bash
-mysql -u root -p < src/main/resources/init.sql
-```
-
-**MySQL Workbenchで実行する場合：**
-
-1. MySQL Workbench を起動
-2. `src/main/resources/init.sql` を開く
-3. 実行（⚡ボタン）
-
-#### 2-3. 作成確認
+MySQL にログインして、`src/main/resources/init.sql` を実行します。
 
 ```sql
-USE insurance_app;
-SHOW TABLES;
+source /path/to/init.sql
 ```
 
-以下のテーブルが作成されていることを確認してください：
+これにより `insurance_app` データベースの作成、テーブル作成、初期データ投入が行われます。
 
-* `policies`
-* `accidents`
+### 2. データベース接続設定
 
----
+`src/main/java/jp/insurance/system/util/Db.java` の接続情報を環境に合わせて変更してください。
 
-### 手順3：環境変数の設定（重要）
-
-DB接続情報は **環境変数** で注入します（コードにパスワードを直書きしない）。
-
-#### 必須（最低限）
-
-| 環境変数名                      | 設定値（例）            |
-| -------------------------- | ----------------- |
-| `INSURANCEAPP_DB_PASSWORD` | （あなたのMySQLのパスワード） |
-
-#### 推奨（分かりやすい・再現性が高い）
-
-| 環境変数名                  | 設定値（例）          |
-| ---------------------- | --------------- |
-| `INSURANCEAPP_DB_HOST` | `localhost`     |
-| `INSURANCEAPP_DB_PORT` | `3306`          |
-| `INSURANCEAPP_DB_NAME` | `insurance_app` |
-| `INSURANCEAPP_DB_USER` | `root`          |
-
-#### 互換（任意：完全URL指定を使いたい場合）
-
-| 環境変数名                 | 設定値（例）                                                                                                          |
-| --------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `INSURANCEAPP_DB_URL` | `jdbc:mysql://localhost:3306/insurance_app?useSSL=false&serverTimezone=Asia/Tokyo&allowPublicKeyRetrieval=true` |
-
-> `INSURANCEAPP_DB_URL` を指定した場合、アプリ側実装によっては `HOST/PORT/NAME` を使わず、URLを優先します。
-
-#### IntelliJ IDEAでの設定方法（日本語UI）
-
-1. IntelliJ IDEA 右上の実行構成（Smart Tomcat）を選択
-2. **「実行」→「構成の編集...」** を開く
-3. 左側のリストから該当の構成を選択
-4. **「環境変数」** を開き、上記の環境変数を追加
-5. **「適用」→「OK」**
-
----
-
-### 手順4：Tomcatの起動（IntelliJ）
-
-1. 右上の実行構成が **Smart Tomcat** になっていることを確認
-2. **▶ 実行** または **デバッグ（虫アイコン）** をクリック
-
-> ブラウザは自動で開かない場合があります。その場合は、Runコンソールに表示されるURLへ手動でアクセスしてください。
-
----
-
-### 手順5：アクセスURL
-
-本アプリは Tomcat の **Context Path** を `InsuranceApp` として起動する想定です。
-
-* **トップページ**：`http://localhost:8080/InsuranceApp/`
-* **契約一覧**：`http://localhost:8080/InsuranceApp/policies`
-* **事故一覧**：`http://localhost:8080/InsuranceApp/accidents`
-
-> **注：** ポート番号（8080）および Context Path は実行構成で変更している場合は適宜読み替えてください。
-
----
-
-## エンドポイント一覧（Context Path配下）
-
-### 契約（Policies）
-
-| HTTPメソッド | URL                          | 説明         |
-| -------- | ---------------------------- | ---------- |
-| GET      | `/policies`                  | 契約一覧表示     |
-| GET      | `/policies/detail?id={id}`   | 契約詳細表示     |
-| GET      | `/policies/new`              | 契約新規登録フォーム |
-| POST     | `/policies/new`              | 契約新規登録     |
-| POST     | `/policies/renew?id={id}`    | 契約を更新      |
-| POST     | `/policies/unrenew?id={id}`  | 契約更新を取消    |
-| POST     | `/policies/cancel?id={id}`   | 契約を解約      |
-| POST     | `/policies/uncancel?id={id}` | 契約解約を取消    |
-
-### 事故（Accidents）
-
-| HTTPメソッド | URL                                         | 説明         |
-| -------- | ------------------------------------------- | ---------- |
-| GET      | `/accidents`                                | 事故一覧表示     |
-| GET      | `/accidents/detail?id={id}`                 | 事故詳細表示     |
-| GET      | `/accidents/new`                            | 事故新規登録フォーム |
-| POST     | `/accidents/new`                            | 事故新規登録     |
-| POST     | `/accidents/status?id={id}&status={status}` | ステータス変更    |
-| POST     | `/accidents/contacted?id={id}`              | 対応日時更新     |
-| POST     | `/accidents/memo?id={id}&memo={memo}`       | メモ保存       |
-
----
-
-## データベース設計
-
-### テーブル構成
-
-#### policies（契約）
-
-| カラム名                 | 型            | 説明                              |
-| -------------------- | ------------ | ------------------------------- |
-| id                   | BIGINT       | 主キー（自動採番）                       |
-| policy_number        | VARCHAR(30)  | 契約番号（ユニーク制約）                    |
-| customer_name        | VARCHAR(100) | 顧客名                             |
-| start_date           | DATE         | 契約開始日                           |
-| end_date             | DATE         | 満期日                             |
-| status               | VARCHAR(20)  | ステータス（ACTIVE/RENEWED/CANCELLED） |
-| renewal_due_end_date | DATE         | 早期更改期限日（満期日の21日前を自動計算）          |
-| renewed_at           | DATETIME     | 更新日時                            |
-| cancelled_at         | DATETIME     | 解約日時                            |
-| created_at           | DATETIME     | 作成日時                            |
-| updated_at           | DATETIME     | 更新日時                            |
-
-**インデックス：**
-
-* `idx_end_date`：満期日での検索を高速化
-* `idx_customer_name`：顧客名での検索を高速化
-
-#### accidents（事故）
-
-| カラム名              | 型            | 説明                                  |
-| ----------------- | ------------ | ----------------------------------- |
-| id                | BIGINT       | 主キー（自動採番）                           |
-| policy_id         | BIGINT       | 契約ID（外部キー：policies.id）              |
-| occurred_at       | DATE         | 事故発生日                               |
-| place             | VARCHAR(200) | 発生場所                                |
-| description       | TEXT         | 事故詳細                                |
-| status            | VARCHAR(20)  | ステータス（PENDING/IN_PROGRESS/RESOLVED） |
-| last_contacted_at | DATETIME     | 最終対応日時                              |
-| memo              | TEXT         | 対応メモ                                |
-| created_at        | DATETIME     | 作成日時                                |
-| updated_at        | DATETIME     | 更新日時                                |
-
-**インデックス：**
-
-* `idx_policy_id`：契約IDでの検索を高速化
-* `idx_status`：ステータスでの絞り込みを高速化
-
----
-
-## 画面遷移
-
-```mermaid
-graph LR
-    A[トップページ] --> B[契約一覧]
-    A --> C[事故一覧]
-
-    B --> D[契約詳細]
-    B --> E[契約新規登録]
-    D --> D1[契約更新/解約]
-    E -->|登録成功| B
-    E -->|入力不正| E
-    D1 --> D
-
-    C --> F[事故詳細]
-    C --> G[事故新規登録]
-    F --> F1[ステータス更新]
-    F --> F2[対応メモ保存]
-    G -->|登録成功| C
-    G -->|入力不正| G
-    F1 --> F
-    F2 --> F
+```java
+private static final String URL = "jdbc:mysql://localhost:3306/insurance_app";
+private static final String USER = "root";
+private static final String PASSWORD = "";  // ご自身のパスワードに変更
 ```
 
-**主要な画面遷移の説明：**
+### 3. ビルド
 
-* **契約一覧 → 契約新規登録 → 契約一覧**：POST/Redirect/Getパターンで二重送信を防止
-* **事故一覧 → 事故新規登録 → 事故一覧**：同様にPRGパターン
-* **契約詳細 → 契約更新/解約 → 契約詳細**：ステータス変更後、同じ詳細画面に戻る
-* **事故詳細 → ステータス更新/メモ保存 → 事故詳細**：POSTで更新後、GETで再表示
+プロジェクトのルートディレクトリで以下を実行します。
 
----
-
-## テスト観点（HTTPステータスコード検証）
-
-本プロジェクトでは、ブラウザの画面表示だけでなく、**NetworkタブでHTTPステータスを確認**して品質を担保しています。
-
-### 400（入力不正）
-
-以下のケースで **400 Bad Request** が返ることを確認しています。
-
-* 必須項目の不足（policyId、occurredAt など）
-* 形式不正（policyIdが数値に変換できない、日付がparseできない）
-* 範囲不正（policyId <= 0、place 100文字超、description 500文字超）
-
-**期待される動作：**
-
-* HTTPステータス：**400**
-* `errors` がリクエストスコープに設定され、画面にエラーメッセージが表示される
-* 入力値が保持されて再表示される
-
-### 500（想定外エラー）
-
-想定外の例外が発生した場合、**500 Internal Server Error** が返ります。
-
-**期待される動作：**
-
-* HTTPステータス：**500**
-* ユーザーには「システムエラー」メッセージが表示される
-
-### 確認手順（ブラウザ）
-
-1. Chrome DevToolsを開く（F12）
-2. **Network** タブを選択
-3. 登録ボタンを押下して、`POST` リクエストが発生することを確認
-4. `Status Code` を確認（400/500/302 など）
-
-> **注：** 画面上の遷移（リダイレクト）により、表示とNetworkの最終ステータスが一致しない場合があるため、Networkでの確認を重視しています。
-
----
-
-## ディレクトリ構成
-
-```
-InsuranceApp/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── jp/insurance/system/
-│   │   │       ├── controller/     # Servlet（画面制御）
-│   │   │       ├── service/        # 業務処理
-│   │   │       ├── dao/            # DBアクセス
-│   │   │       ├── model/          # ドメインモデル・DTO
-│   │   │       ├── exception/      # 例外クラス
-│   │   │       └── util/           # DB接続・日付ユーティリティ
-│   │   ├── resources/
-│   │   │   └── init.sql            # DB初期化スクリプト
-│   │   └── webapp/
-│   │       ├── WEB-INF/
-│   │       │   ├── views/          # JSPファイル
-│   │       │   └── web.xml         # Servlet設定
-│   │       ├── css/                # スタイルシート
-│   │       └── index.jsp           # トップページ
-│   └── test/                       # テストコード（今後拡張予定）
-├── pom.xml                         # Maven設定
-└── README.md                       # このファイル
+```bash
+mvn clean package
 ```
 
----
+`target/InsuranceApp.war` が生成されます。
 
-## 設計・実装上の工夫
+### 4. デプロイ・起動
 
-### 1. 入力検証をServlet側で実装
+生成された `InsuranceApp.war` を Tomcat の `webapps/` ディレクトリに配置して Tomcat を起動します。
 
-JSPの `required` 属性は補助的に使用し、主な検証はServlet側で実施しています。これにより、以下を実現しています。
+ブラウザで以下にアクセスしてください。
 
-* クライアント側の改ざんに対応
-* 一貫した検証ロジック
-* エラーメッセージの柔軟な制御
+```
+http://localhost:8080/InsuranceApp/
+```
 
-### 2. HTTPステータスコードの適切な使用
+## 画面一覧
 
-* **400 Bad Request**：入力不正・業務エラー（errorsを返して画面再表示）
-* **500 Internal Server Error**：想定外エラー（システムエラー画面へ）
+| 画面 | URL | 説明 |
+|------|-----|------|
+| トップ | `/` | 契約一覧へリダイレクト |
+| 契約一覧 | `/policies` | タブ切り替え・検索・集計表示 |
+| 契約詳細 | `/policies/detail?id={id}` | 更新・解約などの操作 |
+| 契約新規登録 | `/policies/new` | 契約者名と開始日を入力して登録 |
+| 事故一覧 | `/accidents` | 対応中・完了のタブ切り替え |
+| 事故詳細 | `/accidents/detail?id={id}` | ステータス変更・メモ保存 |
+| 事故新規登録 | `/accidents/new` | 契約を選択して事故を登録 |
 
-業務例外（`BusinessException`）は **400** に寄せて扱い、予期しない例外は **500** として扱っています。
+## 設計方針
 
-### 3. 環境変数によるDB接続情報の分離
+### アーキテクチャ
+フレームワークを使わず、Servlet/JSPで基本的なMVCパターンを実装しています。
 
-DB接続情報（特にパスワード）を環境変数で注入することで、以下を実現しています。
+- **Controller（Servlet）**: リクエストの受付、パラメータ取得、Serviceの呼び出し、画面遷移
+- **Service**: 業務ルールのチェック、トランザクション管理
+- **DAO**: SQLの実行、ResultSetからModelへの変換
+- **Model**: データの入れ物（Policy、Accidentなど）
+- **View（JSP）**: 画面表示
 
-* GitHubに機密情報をコミットしない
-* ローカル環境と本番環境で設定を切り替えやすい
+### 例外処理
+- **BusinessException**: 業務ルール違反（ユーザーにメッセージを表示）
+- **SystemException**: DB接続エラーなどの想定外エラー
 
-### 4. POST/Redirectパターンの採用
+### ログ
+- 重要な操作（更新・解約・ステータス変更など）をINFOレベルで記録
+- 業務ルール違反をWARNレベルで記録
+- DB例外をERRORレベルで記録
+- 個人情報（氏名）はログに出さず、IDのみ記録
 
-登録・更新・削除などの操作は **POST** で実行し、成功後は **GET** にリダイレクトすることで、ブラウザの「戻る」ボタンやリロード時の二重送信を防止しています。
+## このアプリを作った背景
 
-### 5. NetworkでHTTPステータスを検証
-
-画面上の表示だけでなく、ブラウザの開発者ツール（Networkタブ）でHTTPステータスコードを確認することで、品質を担保しています。
-
----
-
-## セキュリティ・公開に関する注意
-
-* **DBパスワードなどの秘密情報は環境変数に分離**
-* **公開時は `.idea/`, `target/` など不要物を除外**（`.gitignore`で管理）
-
----
-
-## 今後の拡張（例）
-
-* Docker Composeによるワンコマンド起動（MySQL + Tomcat）
-* 画面UI改善（入力補助・エラーデザイン）
-* テストコード（単体・結合）の整備
-* 外部連携版（カレンダー、通知、生成AI、クラウド）への段階的な接続
-
----
-
-## 連絡先
-
-* **GitHub**：[https://github.com/aki251101](https://github.com/aki251101)
-
----
-
-## ライセンス
-
-このプロジェクトは学習目的で作成されたものです。商用利用は想定していません。
-
----
-
-> **採用担当者向け：** デモ動画URLと本READMEの起動手順により、動作確認と実装理解がしやすい構成にしています。ご不明点がありましたら、お気軽にお問い合わせください。
+保険代理店で13年間働いた経験から、日常業務で特に重要だった「契約更新の管理」と「事故対応の進捗管理」をWebアプリとして実装しました。早期更改期間（更新手続き可能な満期日2か月前から3週間前まで）での更新を保険会社から推奨されていたため、満期日の3週間前を過ぎた契約は契約一覧画面に「要注意」と表示するようにしました。また、事故対応一覧画面では、前回の対応から1週間過ぎると「滞留」と表示するようにしました。この2点により更新漏れ、対応漏れを防ぐ仕組みを作ることとしました。

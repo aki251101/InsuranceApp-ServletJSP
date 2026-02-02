@@ -22,34 +22,31 @@ public class PolicyNewServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
-        
-        String policyNumber = request.getParameter("policyNumber");
+
         String customerName = request.getParameter("customerName");
         String startDateStr = request.getParameter("startDate");
-        String endDateStr = request.getParameter("endDate");
 
         try {
             LocalDate startDate = LocalDate.parse(startDateStr);
-            LocalDate endDate = LocalDate.parse(endDateStr);
 
-            policyService.createPolicy(policyNumber, customerName, startDate, endDate);
+            policyService.createPolicy(customerName, startDate);
 
             response.sendRedirect(request.getContextPath() + "/policies");
 
         } catch (BusinessException e) {
             request.setAttribute("errorMessage", e.getMessage());
-            request.setAttribute("policyNumber", policyNumber);
             request.setAttribute("customerName", customerName);
             request.setAttribute("startDate", startDateStr);
-            request.setAttribute("endDate", endDateStr);
             request.getRequestDispatcher("/WEB-INF/views/policy/new.jsp")
-                   .forward(request, response);
+                    .forward(request, response);
         } catch (Exception e) {
             request.setAttribute("errorMessage", "入力内容に誤りがあります");
+            request.setAttribute("customerName", customerName);
+            request.setAttribute("startDate", startDateStr);
             request.getRequestDispatcher("/WEB-INF/views/policy/new.jsp")
-                   .forward(request, response);
+                    .forward(request, response);
         }
     }
 }

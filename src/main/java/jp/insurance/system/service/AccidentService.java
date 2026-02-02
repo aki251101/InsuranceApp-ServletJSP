@@ -123,6 +123,9 @@ public class AccidentService {
                 throw new BusinessException("不正な状態遷移です");
             }
 
+            // ステータス変更 = 対応した行為なので、最終対応日時も更新する
+            accident.setLastContactedAt(LocalDateTime.now());
+
             accidentDao.update(conn, accident);
             conn.commit();
 

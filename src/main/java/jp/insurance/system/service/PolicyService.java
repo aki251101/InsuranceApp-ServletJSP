@@ -53,6 +53,7 @@ public class PolicyService {
             case "active":
                 return policies.stream()
                         .filter(p -> p.getStatus() == PolicyStatus.ACTIVE)
+                        .filter(p -> !isLapsed(p, today))
                         .collect(Collectors.toList());
             case "cancelled":
                 return policies.stream()
@@ -80,35 +81,37 @@ public class PolicyService {
         }
     }
 
-    public void createPolicy(String policyNumber, String customerName,
-                             LocalDate startDate, LocalDate endDate) throws BusinessException {
-        if (policyNumber == null || policyNumber.trim().isEmpty()) {
-            throw new BusinessException("契約番号は必須です");
-        }
+    public void createPolicy(String customerName,
+                             LocalDate startDate) throws BusinessException {
         if (customerName == null || customerName.trim().isEmpty()) {
             throw new BusinessException("契約者名は必須です");
         }
         if (startDate == null) {
             throw new BusinessException("開始日は必須です");
         }
-        if (endDate == null) {
-            throw new BusinessException("満期日は必須です");
-        }
-        if (endDate.isBefore(startDate)) {
-            throw new BusinessException("満期日は開始日より後である必要があります");
-        }
+
+        // 満期日を自動計算（開始日 + 1年）
+        // 例外: 開始日が2月29日で翌年が平年の場合 → 2月28日
+        LocalDate endDate = startDate.plusYears(1);
 
         Connection conn = null;
         try {
             conn = Db.getConnection();
             conn.setAutoCommit(false);
 
-            if (policyDao.existsByPolicyNumber(conn, policyNumber.trim())) {
-                throw new BusinessException("契約番号が既に存在します");
+            // 契約番号を自動採番（開始日の年度で連番を振る）
+            int year = startDate.getYear();
+            int maxSeq = policyDao.findMaxSequenceByFiscalYear(conn, year);
+            int nextSeq = maxSeq + 1;
+            String policyNumber = String.format("P-%d-%04d", year, nextSeq);
+
+            // 念のため重複チェック
+            if (policyDao.existsByPolicyNumber(conn, policyNumber)) {
+                throw new BusinessException("契約番号の採番に失敗しました。再度お試しください。");
             }
 
             Policy policy = new Policy();
-            policy.setPolicyNumber(policyNumber.trim());
+            policy.setPolicyNumber(policyNumber);
             policy.setCustomerName(customerName.trim());
             policy.setStartDate(startDate);
             policy.setEndDate(endDate);
@@ -117,7 +120,7 @@ public class PolicyService {
             policyDao.insert(conn, policy);
             conn.commit();
 
-            logger.info("契約を作成しました: policyId={}", policy.getId());
+            logger.info("契約を作成しました: policyId={}, policyNumber={}", policy.getId(), policyNumber);
 
         } catch (BusinessException e) {
             Db.rollback(conn);
