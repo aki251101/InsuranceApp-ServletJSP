@@ -34,6 +34,7 @@
 | ビルドツール | Maven |
 | CSS | Bootstrap 5 |
 | ログ | SLF4J + Logback |
+| 実行環境 | Docker / Docker Compose |
 
 ### 主な依存ライブラリ
 
@@ -102,53 +103,87 @@ src/main/
                 └── notFound.jsp
 ```
 
+### Docker 関連ファイル
+
+```
+プロジェクトルート/
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
+└── .env.example             ← 環境変数のテンプレート
+```
+
 ## セットアップ手順
 
 ### 前提条件
-- JDK 17 がインストールされていること
-- Apache Tomcat 10.1.x がインストールされていること
-- MySQL 8.x がインストール・起動されていること
-- Maven がインストールされていること
+- Docker Desktop（または Docker Engine + Docker Compose）が使えること
 
-### 1. データベースの準備
+### 1. 環境変数ファイルの準備
 
-MySQL にログインして、`src/main/resources/init.sql` を実行します。
-
-```sql
-source /path/to/init.sql
-```
-
-これにより `insurance_app` データベースの作成、テーブル作成、初期データ投入が行われます。
-
-### 2. データベース接続設定
-
-`src/main/java/jp/insurance/system/util/Db.java` の接続情報を環境に合わせて変更してください。
-
-```java
-private static final String URL = "jdbc:mysql://localhost:3306/insurance_app";
-private static final String USER = "root";
-private static final String PASSWORD = "";  // ご自身のパスワードに変更
-```
-
-### 3. ビルド
-
-プロジェクトのルートディレクトリで以下を実行します。
+プロジェクトルートで `.env` を作成します。
 
 ```bash
-mvn clean package
+cp .env.example .env
 ```
 
-`target/InsuranceApp.war` が生成されます。
+PowerShell の場合:
 
-### 4. デプロイ・起動
+```powershell
+Copy-Item .env.example .env
+```
 
-生成された `InsuranceApp.war` を Tomcat の `webapps/` ディレクトリに配置して Tomcat を起動します。
+`.env` の `MYSQL_ROOT_PASSWORD` を必ず変更してください。
+
+### 2. コンテナの起動
+
+```bash
+docker compose up --build -d
+```
+
+### 3. アクセス確認
 
 ブラウザで以下にアクセスしてください。
 
 ```
 http://localhost:8080/InsuranceApp/
 ```
+
+## コンテナの操作
+
+| 操作 | コマンド |
+|------|----------|
+| 停止 | `docker compose down` |
+| データを含めて削除 | `docker compose down -v` |
+| アプリのログ確認 | `docker compose logs -f app` |
+| DBのログ確認 | `docker compose logs -f db` |
+
+## DB 初期化について
+
+- `src/main/resources/init.sql` を MySQL コンテナ起動時に自動実行します。
+- 初回起動時のみ実行されます（`db_data` ボリュームが空の場合）。
+- 再初期化したい場合は `docker compose down -v` 実行後に再起動してください。
+
+## 環境変数
+
+### `.env`（Compose 用）
+
+| 変数名 | デフォルト値 | 説明 |
+|--------|------------|------|
+| `APP_PORT` | `8080` | アプリ公開ポート |
+| `DB_PORT` | `3306` | DB公開ポート |
+| `MYSQL_DATABASE` | `insurance_app` | DB名 |
+| `MYSQL_ROOT_PASSWORD` | （必須・要変更） | MySQL root パスワード |
+| `TZ` | `Asia/Tokyo` | タイムゾーン |
+
+### app コンテナ（Db.java が参照）
+
+| 変数名 | 値 |
+|--------|-----|
+| `INSURANCEAPP_DB_HOST` | `db` |
+| `INSURANCEAPP_DB_PORT` | `3306` |
+| `INSURANCEAPP_DB_NAME` | `${MYSQL_DATABASE}` |
+| `INSURANCEAPP_DB_USER` | `root` |
+| `INSURANCEAPP_DB_PASSWORD` | `${MYSQL_ROOT_PASSWORD}` |
 
 ## 画面一覧
 
