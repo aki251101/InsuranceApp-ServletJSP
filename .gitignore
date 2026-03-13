@@ -44,6 +44,7 @@ Servers/
 .idea/**/shelf/
 .idea/**/dictionaries/
 .idea/**/aws.xml
+/.smarttomcat/
 
 # ========================================
 # VS Code
