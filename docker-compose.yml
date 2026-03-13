@@ -1,0 +1,40 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: insuranceapp-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me-strong-password}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-insurance_app}
+      TZ: ${TZ:-Asia/Tokyo}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./src/main/resources/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: insuranceapp-app
+    environment:
+      INSURANCEAPP_DB_HOST: db
+      INSURANCEAPP_DB_PORT: 3306
+      INSURANCEAPP_DB_NAME: ${MYSQL_DATABASE:-insurance_app}
+      INSURANCEAPP_DB_USER: root
+      INSURANCEAPP_DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me-strong-password}
+      TZ: ${TZ:-Asia/Tokyo}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:

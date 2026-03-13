@@ -73,6 +73,78 @@ VALUES ('P-2023-0002', '渡辺次郎', '2023-06-01', DATE_ADD(CURDATE(), INTERVA
 INSERT INTO policies (policy_number, customer_name, start_date, end_date, status, renewal_due_end_date, renewed_at, created_at, updated_at)
 VALUES ('P-2023-0003', '中村和子', '2023-07-15', DATE_ADD(CURDATE(), INTERVAL 180 DAY), 'ACTIVE', '2024-07-15', DATE_SUB(NOW(), INTERVAL 10 DAY), NOW(), NOW());
 
+-- デモ用: 当月満期・早期更改達成済み（初期状態で分子/分母に寄与）
+INSERT INTO policies (policy_number, customer_name, start_date, end_date, status, renewal_due_end_date, renewed_at, created_at, updated_at)
+VALUES (
+    'P-2024-0101',
+    '小林健太',
+    DATE_ADD(
+        CASE
+            WHEN DAY(CURDATE()) <= 20 THEN DATE_ADD(CURDATE(), INTERVAL 10 DAY)
+            ELSE LAST_DAY(CURDATE())
+        END,
+        INTERVAL -1 YEAR
+    ),
+    DATE_ADD(
+        CASE
+            WHEN DAY(CURDATE()) <= 20 THEN DATE_ADD(CURDATE(), INTERVAL 10 DAY)
+            ELSE LAST_DAY(CURDATE())
+        END,
+        INTERVAL 1 YEAR
+    ),
+    'ACTIVE',
+    CASE
+        WHEN DAY(CURDATE()) <= 20 THEN DATE_ADD(CURDATE(), INTERVAL 10 DAY)
+        ELSE LAST_DAY(CURDATE())
+    END,
+    DATE_SUB(NOW(), INTERVAL 25 DAY),
+    NOW(),
+    NOW()
+);
+
+-- デモ用: 当月満期・早期更改未達成（更新済み、分母のみ増える）
+INSERT INTO policies (policy_number, customer_name, start_date, end_date, status, renewal_due_end_date, renewed_at, created_at, updated_at)
+VALUES (
+    'P-2024-0102',
+    '松本理沙',
+    DATE_ADD(
+        CASE
+            WHEN DAY(CURDATE()) <= 20 THEN DATE_ADD(CURDATE(), INTERVAL 10 DAY)
+            ELSE LAST_DAY(CURDATE())
+        END,
+        INTERVAL -1 YEAR
+    ),
+    DATE_ADD(
+        CASE
+            WHEN DAY(CURDATE()) <= 20 THEN DATE_ADD(CURDATE(), INTERVAL 10 DAY)
+            ELSE LAST_DAY(CURDATE())
+        END,
+        INTERVAL 1 YEAR
+    ),
+    'ACTIVE',
+    CASE
+        WHEN DAY(CURDATE()) <= 20 THEN DATE_ADD(CURDATE(), INTERVAL 10 DAY)
+        ELSE LAST_DAY(CURDATE())
+    END,
+    DATE_SUB(NOW(), INTERVAL 1 DAY),
+    NOW(),
+    NOW()
+);
+
+-- デモ用: 前月満期・早期更改達成済み（当年度には入るが当月には入らない）
+INSERT INTO policies (policy_number, customer_name, start_date, end_date, status, renewal_due_end_date, renewed_at, created_at, updated_at)
+VALUES (
+    'P-2024-0103',
+    '井上大輔',
+    DATE_SUB(CURDATE(), INTERVAL 385 DAY),
+    DATE_ADD(CURDATE(), INTERVAL 345 DAY),
+    'ACTIVE',
+    DATE_SUB(CURDATE(), INTERVAL 20 DAY),
+    DATE_SUB(CURDATE(), INTERVAL 40 DAY),
+    NOW(),
+    NOW()
+);
+
 -- 初期データ投入（事故）
 -- 事故1: 滞留中（8日前に最終対応）
 INSERT INTO accidents (policy_id, occurred_at, place, description, status, last_contacted_at, memo, created_at, updated_at)

@@ -57,11 +57,8 @@ public class StatsService {
                     ? policy.getRenewalDueEndDate()
                     : policy.getEndDate();
 
-            // 満期日の21日前の日を計算（早期更改期限の最終日）
-            LocalDate earlyRenewalEndDate = dueEndDate.minusDays(21);
-
-            // 満期日の21日前の日が、期間内（当月または当年度）に入っているかをチェック
-            if (earlyRenewalEndDate.isBefore(periodStart) || earlyRenewalEndDate.isAfter(periodEnd)) {
+            // 対象契約は「満期日（更新前の満期日）」が期間内かどうかで判定する
+            if (dueEndDate.isBefore(periodStart) || dueEndDate.isAfter(periodEnd)) {
                 continue;
             }
 

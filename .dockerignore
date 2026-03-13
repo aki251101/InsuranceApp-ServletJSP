@@ -1,0 +1,9 @@
+.git
+.gitignore
+.idea
+.smarttomcat
+target
+out
+build
+deliverables
+*.log
