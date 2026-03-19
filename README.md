@@ -253,9 +253,10 @@ http://localhost:8080/InsuranceApp/
 
 ## 📁 DB 初期化について
 
-- `src/main/resources/init.sql` を MySQL コンテナ起動時に自動実行します。
-- 初回起動時のみ実行されます（`db_data` ボリュームが空の場合）。
-- 再初期化したい場合は `docker compose down -v` 実行後に再起動してください。
+- 初期データ投入SQLとして src/main/resources/init.sql を使用します。
+- MySQLコンテナ初回起動時のみ実行されます（db_data ボリュームが空の場合）。
+- 加えて、現行実装ではアプリ起動時にも DataInitializer により init.sql が実行されます（接続先DBが insurance_app の場合）。
+- 再初期化を避けたい場合は、DataInitializer の運用方針を見直してください。
 
 ---
 
@@ -287,7 +288,7 @@ http://localhost:8080/InsuranceApp/
 
 | 画面 | URL | 説明 |
 |------|-----|------|
-| トップ | `/` | 契約一覧へリダイレクト |
+| トップ | `/` | ホーム画面（契約一覧・事故一覧への導線） |
 | 契約一覧 | `/policies` | タブ切り替え・検索・集計表示 |
 | 契約詳細 | `/policies/detail?id={id}` | 更新・解約などの操作 |
 | 契約新規登録 | `/policies/new` | 契約者名と開始日を入力して登録 |
@@ -314,7 +315,7 @@ http://localhost:8080/InsuranceApp/
 
 ### ログ
 - 重要な操作（更新・解約・ステータス変更など）をINFOレベルで記録
-- 業務ルール違反をWARNレベルで記録
+- 業務ルール違反はBusinessExceptionとして扱い、画面にはユーザー向けメッセージを表示（現状、業務例外の一律WARN出力は未実装）
 - DB例外をERRORレベルで記録
 - 個人情報（氏名）はログに出さず、IDのみ記録
 
@@ -334,3 +335,4 @@ http://localhost:8080/InsuranceApp/
 
 ## 📄 ライセンス
 ポートフォリオ用の個人プロジェクトです。  
+
