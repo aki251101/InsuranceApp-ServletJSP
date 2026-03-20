@@ -324,6 +324,7 @@ http://localhost:8080/InsuranceApp/
 ## 📚 ドキュメント
 - [📄 操作ガイド（user_guide_v1.pdf）](./doc/design/user_guide_v1.pdf)
 - [📄 1枚資料（overview_slide.pdf）](./doc/portfolio/overview_slide.pdf)
+- [📄 基本アーキテクチャ図（basic-architecture-diagram.pdf）](./doc/architecture/basic-architecture-diagram.pdf)
 
 ---
 
